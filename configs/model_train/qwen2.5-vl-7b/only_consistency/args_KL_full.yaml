@@ -1,0 +1,55 @@
+## data
+train_data_path : data/source_train_data.json
+eval_data_path : data/train_LLAVA_test.json
+save_dir : /data/users/your name/checkpoints/qwen2.5-vl-7b/FFT/KL_con0.01_1:1:6
+image_heavy_ratio : 0.125
+text_heavy_ratio : 0.125
+
+## Log Info
+wandb_project: qwen-sft
+wandb_entity: 
+wandb_run_name: KL_con0.01_1:1:6
+wandb_run_id : kl001con116
+
+model : qwen2.5-vl-7b
+image_min_pixels : 50176
+image_max_pixels : 254016
+max_length : 842
+## Finetune Type
+finetune_type: full
+## Consistency Type
+consistency_type : KL
+consistency_loss_weight : 0.01
+temperature : 1
+## Adversarial Type
+adversarial_type: ""
+
+## train model
+deepspeed_config : "modules/models/deepspeed/zero3_offload.json"
+seed: 2025
+device : cuda
+per_device_batch_size: 8
+gradient_accumulation_steps : 1
+epochs : 1
+learning_rate : 1.0e-5
+
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+adam_epsilon: 1.0e-6
+
+weight_decay : 0.0001
+logging_steps : 1
+fp16 : False
+bf16 : True
+tf32 : True
+max_grad_norm : 1.0
+
+gradient_checkpointing : True
+resume_from_checkpoint : ""
+
+## Evaluation
+save_eval_steps : 400
+save_total_limit : 1
+val_period: 1
+max_new_tokens : 100
+

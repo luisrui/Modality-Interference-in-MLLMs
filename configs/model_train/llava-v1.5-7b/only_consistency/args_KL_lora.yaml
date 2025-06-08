@@ -1,0 +1,45 @@
+## data
+train_data_path : data/Fixed_VQA_trail_3_exp2.json
+eval_data_path : data/train_LLAVA_test.json
+save_dir : /data/users/your name/checkpoints/llava-v1.5-7b/LORA
+#save_name : test
+save_name : Fixed_VQA_trail_3_exp2_KL_LoRA
+
+## Log Info
+wandb_project: "llava-sft"
+wandb_entity: ""
+wandb_run_name: "Anchor_VQA_trail_3"
+
+## LORA config
+finetune_type: lora
+lora_r : 128
+lora_alpha : 256
+lora_dropout : 0.1
+
+## train model
+deepspeed_config : modules/models/deepspeed/zero3_offload.json
+seed: 2025
+device : cuda
+#MAX_LENGTH : 512
+per_device_batch_size: 2
+gradient_accumulation_steps : 1
+epochs : 1
+learning_rate : 2.0e-6
+consistency_loss_weight : 0.0001
+temperature : 0.5
+warmup_steps: 50
+weight_decay : 0.001
+logging_steps : 1
+fp16 : False
+bf16 : True
+tf32 : True
+# max_grad_norm : 1.0
+gradient_checkpointing : True
+resume_from_checkpoint : ""
+
+## Evaluation
+save_eval_steps : 500
+save_total_limit : 5
+val_period: 1
+max_new_tokens : 100
+

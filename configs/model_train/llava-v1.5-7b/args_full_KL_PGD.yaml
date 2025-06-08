@@ -1,0 +1,54 @@
+## data
+train_data_path : data/source_train_data.json
+eval_data_path : data/train_LLAVA_test.json
+save_dir : /data/users/your name/checkpoints/llava-v1.5-7b/FFT/SFT_KL_con0.01_PGD_alpha0.1_epsilon1e-3_niter2_2:2:4
+image_heavy_ratio : 0.25
+text_heavy_ratio : 0.25
+
+## Log Info
+wandb_project: llava-sft
+wandb_entity: 
+wandb_run_name: SFT_KL_con0.01_PGD_alpha0.1_epsilon1e-3_niter2_2:2:4
+wandb_run_id : "18sa20ag"
+
+model : llava-1.5-7b
+## Finetune Type
+finetune_type: full
+## Perturb_type Type
+adversarial_type: PGD
+alpha : 0.1
+epsilon : 1.0e-3
+pgd_steps : 2
+## Consistency Type
+consistency_type: KL
+consistency_loss_weight : 0.01
+temperature : 1
+
+## train model
+deepspeed_config : "modules/models/deepspeed/zero3_offload.json"
+seed: 2024
+device : cuda
+per_device_batch_size: 8
+gradient_accumulation_steps : 1
+epochs : 1
+learning_rate : 2.0e-5
+
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+adam_epsilon: 1.0e-6
+
+weight_decay : 0.0001
+logging_steps : 1
+fp16 : False
+bf16 : True
+tf32 : True
+
+gradient_checkpointing: True
+resume_from_checkpoint: ""
+
+## Evaluation
+save_eval_steps : 500
+save_total_limit : 3
+val_period: 1
+max_new_tokens : 100
+

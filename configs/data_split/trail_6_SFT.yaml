@@ -1,0 +1,10 @@
+train_mode: 'mixed'
+datasets : 
+    image_heavy_datasets : ['mini-imagenet', 'caltech-101']
+    image_heavy_data_ratio: [1, 1]
+    text_heavy_datasets : ['openbookqa', 'mmlu']
+    text_heavy_data_ratio: [1, 0.005]
+    multimodal_datasets : ['llava-instruct-665k', 'textcaps']
+    multimodal_data_ratio: [1, 1]
+
+output_file: 'source_train_data'

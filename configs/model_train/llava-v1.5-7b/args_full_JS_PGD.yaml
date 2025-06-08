@@ -1,0 +1,52 @@
+## data
+train_data_path : data/trail_5.json
+eval_data_path : data/train_LLAVA_test.json
+save_dir : /data/users/your name/checkpoints/llava-v1.5-7b/FFT/trail_5_SFT_JS_con0.01_PGD_alpha0.1_epsilon0.0001_niter1_mask_origin
+
+## Log Info
+wandb_project: llava-sft
+wandb_entity: 
+wandb_run_name: trail_5_SFT_JS_con0.01_PGD_alpha0.1_epsilon0.0001_niter1_mask_origin
+wandb_run_id : ""
+
+model : llava-1.5-7b
+## Finetune Type
+finetune_type: full
+## Perturb_type Type
+adversarial_type: PGD
+alpha : 0.1
+epsilon : 0.001
+pgd_steps : 1
+## Consistency Type
+consistency_type: JS
+consistency_loss_weight : 0.01
+temperature : 1
+
+## train model
+deepspeed_config : "modules/models/deepspeed/zero3_offload.json"
+seed: 2024
+device : cuda
+per_device_batch_size: 8
+gradient_accumulation_steps : 1
+epochs : 1
+learning_rate : 2.0e-5
+
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+adam_epsilon: 1.0e-6
+
+weight_decay : 0.0001
+logging_steps : 1
+fp16 : False
+bf16 : True
+tf32 : True
+
+gradient_checkpointing : True
+resume_from_checkpoint: ""
+
+## Evaluation
+save_eval_steps : 500
+save_total_limit : 3
+val_period: 1
+max_new_tokens : 100
+

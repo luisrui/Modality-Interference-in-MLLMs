@@ -1,0 +1,48 @@
+## data
+train_data_path : data/trail_5_more_VQA_exp2.json
+eval_data_path : data/train_LLAVA_test.json
+save_dir : /data/users/your name/checkpoints/llava-v1.5-7b/FFT/trail_5_more_VQA_exp2_MSE_con001
+#save_name : test
+save_name : trail_5_more_VQA_exp2_MSE_con001
+
+## Log Info
+wandb_project: "llava-sft"
+wandb_entity: ""
+run_project_name: "trail_5_more_VQA_exp2_MSE_con01"
+
+## LORA config
+consistent_type : MSE
+model : llava-1.5-7b
+finetune_type: full
+
+## train model
+deepspeed_config : "modules/models/deepspeed/zero3_offload.json"
+seed: 2025
+device : cuda
+max_length : 1024
+per_device_batch_size: 10
+gradient_accumulation_steps : 1
+epochs : 1
+learning_rate : 1.0e-5
+consistency_loss_weight : 0.1
+temperature : 1
+
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+adam_epsilon: 1.0e-6
+
+weight_decay : 0.0001
+logging_steps : 1
+fp16 : False
+bf16 : True
+tf32 : True
+
+gradient_checkpointing : True
+resume_from_checkpoint : ""
+
+## Evaluation
+save_eval_steps : 1000
+save_total_limit : 3
+val_period: 1
+max_new_tokens : 100
+

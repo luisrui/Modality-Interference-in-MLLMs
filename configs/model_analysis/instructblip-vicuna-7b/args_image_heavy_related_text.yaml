@@ -1,0 +1,21 @@
+model_name : "instructblip-vicuna-7b"
+### LLM specification
+max_new_tokens : 20
+top_p : 0.95
+repetition_penalty : 1.0
+temperature : 0.0 # 0.0 means greedy decoding
+length_penalty : 1.0
+sampling_times : 1
+retry_thres : 8
+
+### Dataset specification
+num_options : 6
+is_sub : True
+dataset : "mini-imagenet_image_heavy"
+sample : 'related_text'
+
+### Inference specification
+device : "cuda"
+num_workers : 8
+
+output_dir : "outputs/"
