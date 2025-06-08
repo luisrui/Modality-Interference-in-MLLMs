@@ -79,7 +79,13 @@ bash zs_inference.sh
     --tag your_experiment_setting
     --all
 ```
-
+For evaluation, you can run
+```python
+bash evaluate.sh 
+    --model_name llava-1.5-7b
+    --tag same_tag_as_your_experiment_setting
+    --all
+```
 We also provide pretrained checkpoints and a unified evaluation interface at
 👉 HuggingFace: [luisrui/](https://huggingface.co/luisrui)
 
