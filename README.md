@@ -27,7 +27,7 @@ We provide separate environments for different model families:
 <summary><strong>For LLaVA-1.5 and InstructBLIP-vicuna</strong></summary>
 
 ```bash
-conda create -n mllm_llava -f MLLM.yml
+conda env create -n mllm_llava -f MLLM.yml
 conda activate mllm_llava
 ```
 </details>
@@ -36,7 +36,7 @@ conda activate mllm_llava
 <summary><strong>For Qwen2.5-VL</strong></summary>
 
 ```bash
-conda create -n mllm_qwen -f vllm.yml
+conda env create -n mllm_qwen -f vllm.yml
 conda activate mllm_qwen
 ```
 </details>
