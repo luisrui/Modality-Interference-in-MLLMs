@@ -1,3 +1,4 @@
+import os
 import re
 import json
 import argparse
@@ -48,7 +49,23 @@ def compare(options, answer_1, answer_2):
     if answer_1 == answer_2:
         return True
     return False
-        
+
+def safe_div(num, den):
+    return float(num) / float(den) if den else 0.0
+
+def record_result(store, dataset_nickname, sample, cnt_correct, cnt, cnt_ignore):
+    if dataset_nickname not in store:
+        store[dataset_nickname] = {}
+    store[dataset_nickname][sample] = {
+        "all_report_accuracy": round(safe_div(cnt_correct, cnt), 4),
+        "ignore_accuracy": round(safe_div(cnt_correct, cnt_ignore), 4),
+        "counts": {
+            "correct": int(cnt_correct),
+            "reported": int(cnt),
+            "ignored": int(cnt) - int(cnt_ignore),
+        },
+    }
+
 def main():
     parse = argparse.ArgumentParser()
     parse.add_argument("--data", type=str, default="caltech-101_image_heavy", help="the relative path of argments file")
@@ -68,9 +85,11 @@ def main():
 
     target_answers = [chr(65 + i) for i in range(26)]
     
+    result_store = {}
     print()
     print()
     if mode == "VQA":
+        sample = 'origin'
         file_path = f"outputs/{dataset_nickname}/{args.model}/{mode}/{args.tag}/{dataset_nickname}_{mode}_origin_{args.tag}.txt"
         preds = read_pred_file(file_path)
         if preds:
@@ -113,9 +132,11 @@ def main():
                 cnt += 1
                 cnt_ignore += 1
             print(f'{mode}, origin setting:')
-            print(f"Ignore Accuracy {cnt_correct} / {cnt_ignore}: {cnt_correct/cnt_ignore:.4f}")
-            print(f"All Report Accuracy: {cnt_correct} / {cnt}: {cnt_correct/cnt:.4f}")
-            print(f"{cnt_correct / cnt:.4f}({cnt_correct/cnt_ignore:.4f}, {cnt_correct}/{cnt_ignore})")
+            print(f"Ignore Accuracy {cnt_correct} / {cnt_ignore}: {safe_div(cnt_correct, cnt_ignore):.4f}")
+            print(f"All Report Accuracy: {cnt_correct} / {cnt}: {safe_div(cnt_correct, cnt):.4f}")
+            print(f"{safe_div(cnt_correct, cnt):.4f}({safe_div(cnt_correct, cnt_ignore):.4f}, {cnt_correct}/{cnt_ignore})")
+
+            record_result(result_store, dataset_nickname, sample, cnt_correct, cnt, cnt_ignore)
 
     elif mode == "text_heavy":
         for sample in ['random', 'switch', 'full_black', 'full_white']:
@@ -158,10 +179,12 @@ def main():
                     cnt += 1
                     cnt_ignore += 1
                 print(f'{mode}, {sample} setting:')
-                print(f"Ignore Accuracy {cnt_correct} / {cnt_ignore}: {cnt_correct/cnt_ignore:.4f}")
-                print(f"All Report Accuracy: {cnt_correct} / {cnt}: {cnt_correct/cnt:.4f}")
-                print(f"{cnt_correct / cnt:.4f}({cnt_correct/cnt_ignore:.4f}, {cnt_correct}/{cnt_ignore})")
-    
+                print(f"Ignore Accuracy {cnt_correct} / {cnt_ignore}: {safe_div(cnt_correct, cnt_ignore):.4f}")
+                print(f"All Report Accuracy: {cnt_correct} / {cnt}: {safe_div(cnt_correct, cnt):.4f}")
+                print(f"{safe_div(cnt_correct, cnt):.4f}({safe_div(cnt_correct, cnt_ignore):.4f}, {cnt_correct}/{cnt_ignore})")
+
+                record_result(result_store, dataset_nickname, sample, cnt_correct, cnt, cnt_ignore)
+
     elif mode == "image_heavy":
         for sample in ['origin', 'unrelated_text', 'related_text']:
             file_path = f"outputs/{dataset_nickname}/{args.model}/{mode}/{args.tag}/{dataset_nickname}_{mode}_{sample}_{args.tag}.txt"
@@ -203,14 +226,23 @@ def main():
                     cnt += 1
                     cnt_ignore += 1
                 print(f'{mode}, {sample} setting:')
-                print(f"Ignore Accuracy {cnt_correct} / {cnt_ignore}: {cnt_correct/cnt_ignore:.4f}")
-                print(f"All Report Accuracy: {cnt_correct} / {cnt}: {cnt_correct/cnt:.4f}")
-                print(f"{cnt_correct / cnt:.4f}({cnt_correct/cnt_ignore:.4f}, {cnt_correct}/{cnt_ignore})")
-    
+                print(f"Ignore Accuracy {cnt_correct} / {cnt_ignore}: {safe_div(cnt_correct, cnt_ignore):.4f}")
+                print(f"All Report Accuracy: {cnt_correct} / {cnt}: {safe_div(cnt_correct, cnt):.4f}")
+                print(f"{safe_div(cnt_correct, cnt):.4f}({safe_div(cnt_correct, cnt_ignore):.4f}, {cnt_correct}/{cnt_ignore})")
+
+                record_result(result_store, dataset_nickname, sample, cnt_correct, cnt, cnt_ignore)
     else:
         raise("Invalid mode")
     
     print()
+
+    save_dir = os.path.join("results", dataset_nickname, str(args.model), str(args.tag))
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, "result.txt")
+    with open(save_path, "w") as f:
+        json.dump(result_store, f, indent=2)
+    print(f"[Saved] metrics json -> {save_path}")
+
 
 if __name__ == "__main__":
     main()   

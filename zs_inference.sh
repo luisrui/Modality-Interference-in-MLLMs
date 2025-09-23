@@ -2,7 +2,7 @@
 
 export PYTHONPATH=~/MLLM:$PYTHONPATH
 
-gpu_ids=(4 5 6 7)
+gpu_ids=(0 1 2 3 4 5 6 7)
 
 # define tasks
 declare -A tasks

@@ -93,7 +93,7 @@ dependencies:
       - et-xmlfile==2.0.0
       - evaluate==0.4.3
       - filelock==3.16.1
-      - flash-attn==2.7.1.post4
+      # - flash-attn==2.7.1.post4
       - fonttools==4.55.3
       - frozenlist==1.5.0
       - fsspec==2024.9.0
