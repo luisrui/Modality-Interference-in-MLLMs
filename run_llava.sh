@@ -2,7 +2,6 @@ set -euo pipefail
 
 REPO_URL="https://github.com/luisrui/Modality-Interference-in-MLLMs.git"
 REPO_DIR="Modality-Interference"
-REQ_FILE="requirements_llava.txt"
 
 REPO_ID="luisrui/Modality-Interference-in-MLLMs-DATA"
 REPO_TYPE="dataset"
@@ -17,6 +16,10 @@ else
 fi
 
 cd "$REPO_DIR"
+
+# Install dependencies
+echo "==> Installing requirements..."
+pip install -r requirements_llava.yaml
 
 echo "Target HF dataset repo: ${REPO_ID}"
 echo "Output dir           : ${DEST_DIR}"
