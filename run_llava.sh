@@ -19,7 +19,7 @@ cd "$REPO_DIR"
 
 # Install dependencies
 echo "==> Installing requirements..."
-pip install -r requirements_llava.yaml
+pip install -r requirements_llava.txt
 
 echo "Target HF dataset repo: ${REPO_ID}"
 echo "Output dir           : ${DEST_DIR}"
