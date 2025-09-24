@@ -313,7 +313,7 @@ class LocalModelChat_FromCheckpoint():
                     low_cpu_mem_usage=True
                 )
             self.prompt_format = llava_visual_format
-            self.split_patches = ["ASSISTANT:"]
+            self.split_patches = ["assistant"]
         elif "llava-v1.6-vicuna-7b" in args.model_name.lower():
             self.processor = LlavaNextProcessor.from_pretrained("llava-hf/llava-v1.6-vicuna-7b-hf", padding_side='left')
             if self.checkpoint_path:
@@ -332,36 +332,42 @@ class LocalModelChat_FromCheckpoint():
             self.split_patches = ["ASSISTANT:"]
         elif "llava-next-72b-hf" in args.model_name.lower():
             self.processor = LlavaNextProcessor.from_pretrained("llava-hf/llava-next-72b-hf", padding_side='left')
+            self.processor.pad_token_id = self.processor.tokenizer.eos_token_id
             if self.checkpoint_path:
                 self.model = LlavaNextForConditionalGeneration.from_pretrained(
                     args.checkpoint_path,
                     torch_dtype=torch.float16,
-                    low_cpu_mem_usage=True
+                    low_cpu_mem_usage=True,
+                    load_in_4bit=True
                 )
             else:
                 self.model = LlavaNextForConditionalGeneration.from_pretrained(
                     "llava-hf/llava-next-72b-hf",
                     torch_dtype=torch.float16,
-                    low_cpu_mem_usage=True
+                    low_cpu_mem_usage=True,
+                    load_in_4bit=True
                 )
             self.prompt_format = llava_visual_format
-            self.split_patches = ["ASSISTANT:"]
+            self.split_patches = ["assistant"]
         elif "llava-next-110b-hf" in args.model_name.lower():
             self.processor = LlavaNextProcessor.from_pretrained("llava-hf/llava-next-110b-hf", padding_side='left')
+            self.processor.pad_token_id = self.processor.tokenizer.eos_token_id
             if self.checkpoint_path:
                 self.model = LlavaNextForConditionalGeneration.from_pretrained(
                     args.checkpoint_path,
                     torch_dtype=torch.float16,
-                    low_cpu_mem_usage=True
+                    low_cpu_mem_usage=True,
+                    load_in_4bit=True
                 )
             else:
                 self.model = LlavaNextForConditionalGeneration.from_pretrained(
                     "llava-hf/llava-next-110b-hf",
                     torch_dtype=torch.float16,
-                    low_cpu_mem_usage=True
+                    low_cpu_mem_usage=True,
+                    load_in_4bit=True
                 )
             self.prompt_format = llava_visual_format
-            self.split_patches = ["ASSISTANT:"]
+            self.split_patches = ["assistant"]
         elif "qwen2.5-vl-7b" in args.model_name.lower():
             from transformers import Qwen2_5_VLForConditionalGeneration
             self.processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct")

@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH=$HOME/mi-venv/bin:$PATH
 export PYTHONPATH=~/MLLM:$PYTHONPATH
 
 # Check if the number of arguments is less than 2
@@ -32,9 +33,9 @@ if [ -z "$MODEL" ] || [ -z "$TAG" ]; then
 fi
 
 datasets=(
-    "scienceqa_VQA"
-    "mmbench-en_VQA"
-    "seed-bench-img_VQA"
+    # "scienceqa_VQA"
+    # "mmbench-en_VQA"
+    # "seed-bench-img_VQA"
     "mmlu_text_heavy"
     "openbookqa_text_heavy"
     "caltech-101_image_heavy"

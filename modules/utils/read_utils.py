@@ -71,22 +71,22 @@ def load_dataset(data_name, mode, task):
 
         if "llava-instruct-665k" in data_name:
             dataset_nickname = "LLaVa-Instruct-665K"
-            with open(f"/data/users/your name/data/LLaVa-Instruct-665K/llava_v1_5_mix665k_img.json", "r") as fin:
+            with open(f"data/VQADatasets/LLaVa-Instruct-665K/llava_v1_5_mix665k_img.json", "r") as fin:
                 dataset = json.load(fin)
 
         if "textcaps" in data_name:
             dataset_nickname = "TextCaps"
-            with open(f"/data/users/your name/data/TextCaps/TextCaps_conversation.json", "r") as fin:
+            with open(f"data/TextCaps/TextCaps_conversation.json", "r") as fin:
                 dataset = json.load(fin)
 
         if "seed-bench-img" in data_name:
             dataset_nickname = "SEED-Bench-Img"
-            with open(f"/data/users/your name/data/SEED-Bench-Img/multiple_choice_data.json", "r") as fin:
+            with open(f"data/SEED-Bench-Img/multiple_choice_data.json", "r") as fin:
                 dataset = json.load(fin)
 
         if "mmbench-en" in data_name:
             dataset_nickname = "MMBench-EN"
-            with open(f"/data/users/your name/data/MMBench-EN/multiple_choice_data.json", "r") as fin:
+            with open(f"data/MMBench-EN/multiple_choice_data.json", "r") as fin:
                 dataset = json.load(fin) 
     
     else:
@@ -99,11 +99,11 @@ def transform_image_path(data_nickname, image_path_or_text):
     elif data_nickname in ["viquae", "ImageWikiQA", "ScienceQA"]:
         return os.path.join(f"data/VQADatasets/{data_nickname}/images/", image_path_or_text)
     elif data_nickname in ["A-OKVQA"]:
-        return os.path.join("/data/users/your name/data/LLaVa-Instruct-665K/coco/images/", image_path_or_text)
+        return os.path.join("data/LLaVa-Instruct-665K/coco/images/", image_path_or_text)
     elif data_nickname in ['TextCaps', 'SEED-Bench-Img']:
-        return os.path.join(f"/data/users/your name/data/{data_nickname}/", image_path_or_text)
+        return os.path.join(f"data/{data_nickname}/", image_path_or_text)
     elif data_nickname in ["LLaVa-Instruct-665K"]:
-        return os.path.join(f"/data/users/your name/data/LLaVa-Instruct-665K/", image_path_or_text)
+        return os.path.join(f"data/LLaVa-Instruct-665K/", image_path_or_text)
     elif data_nickname in ["MMBench-EN"]:
         return BytesIO(base64.b64decode(image_path_or_text))
     else:

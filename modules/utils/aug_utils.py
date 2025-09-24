@@ -18,8 +18,6 @@ image_std = [0.26862954, 0.26130258, 0.27577711]
 
 def text_aug_for_ImageHeavy(batch, dataset_nickname):
     aug_contexts = defaultdict(list)
-    gcg_adv_data = pd.read_json(f"data/{dataset_nickname}/perturb_GCG_K5L16.jsonl", lines=True)
-    id_gcg_map = dict(zip(gcg_adv_data['id'], gcg_adv_data['perturbed_GCG_suffix']))
     
     for sample in ['related_text', 'origin', 'unrelated_text']:
         for data in batch:

@@ -1,14 +1,15 @@
 #!/bin/bash
 
-export PYTHONPATH=~/MLLM:$PYTHONPATH
+export PATH=$HOME/mi-venv/bin:$PATH
+export PYTHONPATH=~/Modality-Interference:$PYTHONPATH
 
 gpu_ids=(0 1 2 3 4 5 6 7)
 
 # define tasks
 declare -A tasks
-tasks["VQA-1"]="configs/model_inference/VQA/args_scienceqa.yaml"
-tasks["VQA-2"]="configs/model_inference/VQA/args_mmbench.yaml"
-tasks["VQA-3"]="configs/model_inference/VQA/args_seedbench.yaml"
+# tasks["VQA-1"]="configs/model_inference/VQA/args_scienceqa.yaml"
+# tasks["VQA-2"]="configs/model_inference/VQA/args_mmbench.yaml"
+# tasks["VQA-3"]="configs/model_inference/VQA/args_seedbench.yaml"
 tasks["Image-Heavy-1"]="configs/model_inference/image_heavy/args_caltech101.yaml"
 tasks["Image-Heavy-2"]="configs/model_inference/image_heavy/args_miniImageNet.yaml"
 tasks["Text-Heavy-1"]="configs/model_inference/text_heavy/args_mmlu.yaml"
