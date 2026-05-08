@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diagnosing and Mitigating Modality Interference in MLLMs</title>
+  <meta name="description" content="A causal perturbation-based framework for measuring and reducing task-irrelevant modality influence in Multimodal Large Language Models." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+  <!-- Sticky Top Nav -->
+  <nav class="topnav" id="topnav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="#top">
+        <span class="brand-dot"></span>
+        Modality Interference
+      </a>
+      <div class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#problem">Problem</a>
+        <a href="#diagnosis">Diagnosis</a>
+        <a href="#protocol">Perturbations</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#ablation">Ablation</a>
+        <a href="#ood">OOD</a>
+        <a href="#cite">Cite</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="top">
+    <div class="hero-grid">
+      <div class="hero-left">
+        <div class="venue-pill">NeurIPS Submission · arXiv:2505.19616</div>
+        <h1 class="hero-title">
+          <span class="t-row"><span class="word verb">Diagnosing</span> <span class="word neutral">and</span> <span class="word verb">Mitigating</span></span>
+          <span class="t-row"><span class="word problem">Modality Interference</span></span>
+          <span class="t-row"><span class="word neutral">in</span> <span class="word domain">Multimodal Large Language Models</span></span>
+        </h1>
+        <p class="hero-tagline">
+          When one modality should be ignored, current MLLMs still listen — and their predictions change.
+        </p>
+
+        <!-- Authors: all UC Davis -->
+        <div class="authors">
+          <span class="author"><a href="#">Rui Cai</a><sup>1</sup></span>
+          <span class="author"><a href="#">Bangzheng Li</a><sup>1</sup></span>
+          <span class="author"><a href="#">Xiaofei Wen</a><sup>1</sup></span>
+          <span class="author"><a href="#">Muhao Chen</a><sup>1</sup></span>
+          <span class="author"><a href="#">Zhe Zhao</a><sup>1</sup></span>
+        </div>
+        <div class="affiliations">
+          <span class="aff">
+            <sup>1</sup>
+            <span class="aff-name">University of California, Davis</span>
+            <span class="aff-mark">UC Davis</span>
+          </span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="hero-buttons">
+          <a class="btn btn-primary" href="https://arxiv.org/abs/2505.19616" target="_blank" rel="noopener">
+            <span class="btn-ico">&#128196;</span> Paper
+          </a>
+          <a class="btn btn-dark" href="https://github.com/" target="_blank" rel="noopener">
+            <span class="btn-ico">&#60;/&#62;</span> Code
+          </a>
+          <a class="btn btn-outline" href="#protocol">
+            <span class="btn-ico">&#128190;</span> Perturbation Suite
+          </a>
+          <a class="btn btn-outline" href="#" >
+            <span class="btn-ico">&#128221;</span> Poster
+          </a>
+          <a class="btn btn-outline" href="#" >
+            <span class="btn-ico">&#127916;</span> Slides
+          </a>
+          <a class="btn btn-outline" href="#" >
+            <span class="btn-ico">&#129303;</span> Models
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Visual: real Figure 1 from paper -->
+      <div class="hero-right">
+        <figure class="hero-figure">
+          <img src="static/images/fig1_radar.png" alt="Figure 1 — Modality interference across 15 MLLMs" />
+          <figcaption>
+            <b>Figure 1.</b> Modality interference across 15 MLLMs. <b>Left:</b> vision tasks collapse under
+            <span class="hl-red">misleading text</span>. <b>Right:</b> text-heavy reasoning degrades under
+            <span class="hl-orange">visual noise</span>. Polygon area = model capability.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Abstract -->
+    <section class="section" id="overview">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Overview</span>
+          <h2>Abstract</h2>
+        </div>
+        <div class="abstract-card">
+          <p>
+            Multimodal Large Language Models achieve strong benchmark performance, but remain
+            <strong>fragile when irrelevant modalities contain spurious or misleading signals</strong>.
+            We identify this failure as <span class="hl-red">Modality Interference</span>, where
+            task-irrelevant image or text content improperly changes model predictions.
+            We propose a <strong>causal perturbation-based evaluation protocol</strong> to measure
+            this behavior across image-heavy, text-heavy, and VQA tasks.
+            To mitigate it, we introduce a <span class="hl-indigo">perturbation-aware fine-tuning framework</span>
+            combining heuristic and adversarial perturbations with consistency regularization between
+            clean and perturbed inputs. Across diverse MLLM families and scales, our method improves
+            both unimodal robustness and standard multimodal performance.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="section section-alt" id="problem">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Motivation</span>
+          <h2>What is <span class="hl-red">Modality Interference</span>?</h2>
+          <p class="section-sub">
+            A model exhibits modality interference when its answer changes because of a modality
+            that should be irrelevant to the task. We make this concrete with two failure cases.
+          </p>
+        </div>
+
+        <div class="case-grid">
+          <div class="case-card case-image">
+            <div class="case-tag tag-red">A · Vision Task</div>
+            <h3>Image + misleading text → prediction collapse</h3>
+            <p>
+              The image determines the answer, but a misleading caption such as
+              <em>"this seems to depict a dog"</em> overrides the visual evidence.
+              Strong MLLMs follow the text and produce the wrong label.
+            </p>
+            <div class="case-figure">
+              <img src="static/images/image_heavy_comparison.png" alt="Image-heavy interference example" />
+            </div>
+          </div>
+
+          <div class="case-card case-text">
+            <div class="case-tag tag-orange">B · Text Task</div>
+            <h3>QA + irrelevant image → reasoning degradation</h3>
+            <p>
+              A pure text QA question should be answered from text alone, yet attaching an
+              unrelated real image (or even a black/white canvas) shifts the model's distribution
+              and degrades accuracy on standard benchmarks.
+            </p>
+            <div class="case-figure">
+              <img src="static/images/text_heavy_comparison.png" alt="Text-heavy interference example" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key findings -->
+    <section class="section" id="findings">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Key Findings</span>
+          <h2>Four observations across MLLM families</h2>
+        </div>
+
+        <div class="finding-grid">
+          <div class="finding-card">
+            <div class="fc-icon icon-red">!</div>
+            <h4>Pervasive Failure</h4>
+            <p>Modality interference appears across LLaVA, Qwen-VL, InternVL, and InstructBLIP families.</p>
+          </div>
+          <div class="finding-card">
+            <div class="fc-icon icon-orange">&#8593;</div>
+            <h4>Scale Helps, But Doesn't Solve</h4>
+            <p>Larger models are more robust, but interference remains observable even at large scales.</p>
+          </div>
+          <div class="finding-card">
+            <div class="fc-icon icon-red">&#9888;</div>
+            <h4>Misleading Text Hurts Vision</h4>
+            <p>Image-heavy classification can collapse when text contains incorrect but plausible descriptions.</p>
+          </div>
+          <div class="finding-card">
+            <div class="fc-icon icon-green">&#10003;</div>
+            <h4>Training Restores Robustness</h4>
+            <p>Our method improves clean and perturbed performance while preserving VQA accuracy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Causal diagnosis -->
+    <section class="section section-alt" id="diagnosis">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Causal Diagnosis</span>
+          <h2>Measuring Interference as a <span class="hl-indigo">Causal Effect</span></h2>
+          <p class="section-sub">
+            Treat irrelevant modality perturbations as interventions. If the task-relevant modality
+            stays unchanged, but the prediction changes after perturbing the irrelevant modality,
+            the model exhibits interference.
+          </p>
+        </div>
+
+        <div class="diag-grid">
+          <figure class="diag-graph">
+            <img src="static/images/fig2_causal.png" alt="Figure 2 — Causal graph illustrating modality interference" />
+            <figcaption>
+              <b>Figure 2.</b> Causal graph illustrating modality interference. Heuristic interventions
+              perturb either the image or text input, affecting their intermediate representations and
+              ultimately the model prediction.
+            </figcaption>
+          </figure>
+
+          <div class="diag-text">
+            <div class="eq-block">
+              <div class="eq-label">Causal effect of intervention</div>
+              <div class="eq">CE = δ(P, P&#8242;)</div>
+              <div class="eq-note">where P is the clean prediction distribution and P&#8242; is the prediction distribution after intervening on the irrelevant modality.</div>
+            </div>
+            <div class="eq-block">
+              <div class="eq-label">Decision-level metric</div>
+              <div class="eq">δ<sub>cp</sub> = <span class="bracket">𝟙</span>[ a ≠ a&#8242; ]</div>
+              <div class="eq-note">a fraction of inputs whose decision changes under perturbation — a direct measurement of interference.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Perturbation Protocol -->
+    <section class="section" id="protocol">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Perturbation Protocol</span>
+          <h2>What we intervene on, and how</h2>
+          <p class="section-sub">
+            Each task category fixes the relevant modality and perturbs the irrelevant one.
+            Balanced VQA tasks check that mitigation does not destroy normal multimodal capability.
+          </p>
+        </div>
+
+        <div class="proto-grid">
+          <div class="proto-card">
+            <div class="proto-tag tag-red">Image-heavy</div>
+            <div class="proto-row"><span>Relevant</span><b>Image</b></div>
+            <div class="proto-row"><span>Irrelevant</span><b>Text</b></div>
+            <ul class="proto-list">
+              <li>Unrelated scientific facts</li>
+              <li>Misleading descriptions linked to incorrect options</li>
+              <li>OCR-style noise <span class="ood-tag">OOD</span></li>
+            </ul>
+          </div>
+
+          <div class="proto-card">
+            <div class="proto-tag tag-orange">Text-heavy</div>
+            <div class="proto-row"><span>Relevant</span><b>Text</b></div>
+            <div class="proto-row"><span>Irrelevant</span><b>Image</b></div>
+            <ul class="proto-list">
+              <li>Random pixels</li>
+              <li>Full-black canvas</li>
+              <li>Full-white canvas</li>
+              <li>Irrelevant real images</li>
+              <li>Unrelated UI screenshots <span class="ood-tag">OOD</span></li>
+            </ul>
+          </div>
+
+          <div class="proto-card">
+            <div class="proto-tag tag-indigo">Balanced VQA</div>
+            <div class="proto-row"><span>Relevant</span><b>Image + Text</b></div>
+            <div class="proto-row"><span>Irrelevant</span><b>—</b></div>
+            <ul class="proto-list">
+              <li>No perturbation</li>
+              <li>Used to verify mitigation preserves multimodal reasoning</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Method -->
+    <section class="section section-alt" id="method">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Method</span>
+          <h2><span class="hl-indigo">Perturbation-aware Fine-tuning</span></h2>
+          <p class="section-sub">
+            Three components, jointly trained: heuristic input augmentation, modality-masked
+            adversarial embedding perturbation, and output-level consistency regularization.
+          </p>
+        </div>
+
+        <div class="pipeline">
+          <div class="pipe-step">
+            <div class="pipe-num">1</div>
+            <h3>Heuristic Perturbation Augmentation</h3>
+            <p>
+              Build clean and perturbed versions of image-heavy and text-heavy samples
+              <span class="mono">D<sup>AUG</sup> = D<sup>img</sup> ∪ D<sup>img</sup><sub>pert</sub> ∪ D<sup>text</sup> ∪ D<sup>text</sup><sub>pert</sub> ∪ D<sup>VQA</sup></span>.
+            </p>
+          </div>
+          <div class="pipe-arrow">&#8594;</div>
+          <div class="pipe-step">
+            <div class="pipe-num">2</div>
+            <h3>Modality-masked Adversarial Perturbation</h3>
+            <p>
+              PGD-style raw-gradient updates in embedding space, masked so only
+              <em>task-irrelevant</em> modality tokens are perturbed.
+            </p>
+          </div>
+          <div class="pipe-arrow">&#8594;</div>
+          <div class="pipe-step">
+            <div class="pipe-num">3</div>
+            <h3>Consistency Regularization</h3>
+            <p>
+              Force agreement between clean and perturbed output distributions via
+              KL or JS divergence (we find JS slightly stronger).
+            </p>
+          </div>
+        </div>
+
+        <figure class="framework-figure">
+          <img src="static/images/fig3_framework.png" alt="Figure 3 — Overview of the proposed framework" />
+          <figcaption>
+            <b>Figure 3.</b> Overview of our proposed framework. Heuristic perturbations enter at the
+            input level; modality-masked adversarial noise is injected after the multimodal projector;
+            consistency regularization aligns clean and perturbed predictions.
+          </figcaption>
+        </figure>
+
+        <div class="loss-card">
+          <div class="loss-label">Final objective</div>
+          <div class="loss-eq">
+            <span class="loss-term">L<sub>total</sub></span>
+            <span class="loss-eq-eq">=</span>
+            <span class="loss-term hl-indigo">L<sub>sft</sub></span>
+            <span class="loss-eq-plus">+</span>
+            <span class="loss-term hl-red">L<sub>adv</sub></span>
+            <span class="loss-eq-plus">+</span>
+            <span class="loss-term">λ<sub>cons</sub></span>
+            <span class="loss-term hl-green">L<sub>consistency</sub></span>
+          </div>
+          <div class="loss-note">
+            Supervised loss preserves task signal. Adversarial loss probes worst-case sensitive
+            directions in the irrelevant modality. Consistency anchors the prediction so it
+            does not move when only the irrelevant modality is perturbed.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="section" id="results">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Experiments</span>
+          <h2>Robustness Gains Across Model Families</h2>
+          <p class="section-sub">
+            Vanilla MLLMs degrade under perturbations; ours holds steady. We summarize the headline
+            numbers below; full tables are in the paper.
+          </p>
+        </div>
+
+        <div class="result-figs">
+          <figure>
+            <img src="static/images/teaser_radar_v2.png" alt="Radar chart of clean vs perturbed performance after fine-tuning" />
+            <figcaption>Clean vs perturbed performance across families after our perturbation-aware fine-tuning. Ours expands the safe region across both vision-heavy and text-heavy interference axes.</figcaption>
+          </figure>
+          <figure>
+            <img src="static/images/perturbation_comparison.png" alt="Per-perturbation comparison" />
+            <figcaption>Per-perturbation breakdown — the largest gains appear exactly where vanilla models collapse.</figcaption>
+          </figure>
+        </div>
+
+        <div class="result-cards">
+          <div class="result-card">
+            <div class="rc-head">
+              <div class="rc-title">LLaVA-1.5-7B</div>
+              <div class="rc-tag">family · LLaVA</div>
+            </div>
+            <div class="rc-rows">
+              <div class="rc-row"><span>Mini-ImageNet (perturbed)</span><b><span class="num-bad">43.5</span> &#8594; <span class="num-good">98.4+</span></b></div>
+              <div class="rc-row"><span>Caltech-101 (perturbed)</span><b><span class="num-bad">57.4</span> &#8594; <span class="num-good">98.9+</span></b></div>
+              <div class="rc-row"><span>OpenBookQA (perturbed)</span><b><span class="num-bad">56.4</span> &#8594; <span class="num-good">81.0+</span></b></div>
+              <div class="rc-row"><span>VQA overall</span><b><span class="num-mid">63.8</span> &#8594; <span class="num-good">66.8</span></b></div>
+            </div>
+          </div>
+
+          <div class="result-card">
+            <div class="rc-head">
+              <div class="rc-title">InstructBLIP-7B</div>
+              <div class="rc-tag">family · BLIP</div>
+            </div>
+            <div class="rc-rows">
+              <div class="rc-row"><span>Caltech-101 (misleading text)</span><b><span class="num-bad">17.5</span> &#8594; <span class="num-good">99.0</span></b></div>
+              <div class="rc-row"><span>OpenBookQA (perturbed)</span><b><span class="num-bad">46.2</span> &#8594; <span class="num-good">78.3</span></b></div>
+              <div class="rc-row"><span>VQA overall</span><b><span class="num-mid">56.4</span> &#8594; <span class="num-good">64.8</span></b></div>
+            </div>
+          </div>
+
+          <div class="result-card">
+            <div class="rc-head">
+              <div class="rc-title">Qwen2.5-VL-7B</div>
+              <div class="rc-tag">family · Qwen-VL</div>
+            </div>
+            <div class="rc-rows">
+              <div class="rc-row"><span>OpenBookQA (perturbed)</span><b><span class="num-mid">77.5</span> &#8594; <span class="num-good">92.7</span></b></div>
+              <div class="rc-row"><span>MMLU (perturbed)</span><b><span class="num-mid">63.7</span> &#8594; <span class="num-good">71.5</span></b></div>
+              <div class="rc-row"><span>VQA overall</span><b><span class="num-mid">— </span> &#8594; <span class="num-good">stable</span></b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footnote">
+          Numbers are summary highlights from the paper. Refer to the manuscript for full tables, std-devs, and 13B variants.
+        </div>
+      </div>
+    </section>
+
+    <!-- Ablation -->
+    <section class="section section-alt" id="ablation">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Ablation</span>
+          <h2>Each component contributes</h2>
+          <p class="section-sub">
+            Vanilla &#8594; +D<sub>VQA</sub> &#8594; +D<sub>AUG</sub> &#8594; +KL/JS &#8594; +ADV &#8594; <b>Ours</b>.
+            Augmentation gives the largest jump; consistency and adversarial perturbation add stability.
+          </p>
+        </div>
+
+        <div class="ablation-figure">
+          <img src="static/images/ablation_2panel.png" alt="Two-panel ablation curve" />
+        </div>
+
+        <div class="ablation-grid">
+          <div class="abl-card">
+            <div class="abl-step">+ D<sub>VQA</sub></div>
+            <p>VQA-only fine-tuning leaves perturbed performance largely untouched.</p>
+          </div>
+          <div class="abl-card">
+            <div class="abl-step">+ D<sub>AUG</sub></div>
+            <p>Heuristic perturbation augmentation drives the largest single jump in robustness.</p>
+          </div>
+          <div class="abl-card">
+            <div class="abl-step">+ KL/JS</div>
+            <p>Consistency regularization stabilizes outputs and improves OOD generalization.</p>
+          </div>
+          <div class="abl-card">
+            <div class="abl-step">+ ADV</div>
+            <p>Modality-masked adversarial perturbations close the remaining worst-case gap.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OOD -->
+    <section class="section" id="ood">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Generalization</span>
+          <h2>Beyond Seen Perturbations</h2>
+          <p class="section-sub">
+            We evaluate on perturbation types and datasets the model was never trained on.
+            The framework still improves robustness.
+          </p>
+        </div>
+
+        <div class="ood-grid">
+          <div class="ood-card">
+            <h4>Seen datasets</h4>
+            <ul>
+              <li>Mini-ImageNet</li>
+              <li>Caltech-101</li>
+              <li>OpenBookQA</li>
+              <li>MMLU</li>
+            </ul>
+          </div>
+          <div class="ood-card ood-card-emph">
+            <h4>Unseen perturbations</h4>
+            <ul>
+              <li>OCR snippets (FUNSD)</li>
+              <li>UI screenshots (RICO)</li>
+            </ul>
+          </div>
+          <div class="ood-card ood-card-emph">
+            <h4>Unseen datasets</h4>
+            <ul>
+              <li>Food-101</li>
+              <li>ARC Challenge</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="figs-2col">
+          <figure>
+            <img src="static/images/mini_imagenet_scores_pretrain_evaluation.png" alt="Mini-ImageNet pretrain evaluation" />
+            <figcaption>Image-heavy: Mini-ImageNet across perturbations.</figcaption>
+          </figure>
+          <figure>
+            <img src="static/images/mmlu_scores_pretrain_evaluation.png" alt="MMLU pretrain evaluation" />
+            <figcaption>Text-heavy: MMLU across visual perturbations.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison to baselines -->
+    <section class="section section-alt" id="baselines">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Comparison</span>
+          <h2>Why training-time, not decoding-time</h2>
+          <p class="section-sub">
+            Prompting and decoding-time fixes do not reshape the underlying cross-modal reliance.
+            Architecture-level fixes improve some representations, but do not directly enforce
+            invariance to irrelevant modality perturbations.
+          </p>
+        </div>
+
+        <div class="cmp-table">
+          <div class="cmp-row cmp-head">
+            <div>Approach</div>
+            <div>Family</div>
+            <div>Targets the failure mode?</div>
+          </div>
+          <div class="cmp-row">
+            <div>CoT prompting</div>
+            <div>Prompt-time</div>
+            <div class="cmp-no">Indirect — relies on model already being robust</div>
+          </div>
+          <div class="cmp-row">
+            <div>VCD / CausalMM contrastive decoding</div>
+            <div>Decoding-time</div>
+            <div class="cmp-no">Reweights output, but reliance pattern unchanged</div>
+          </div>
+          <div class="cmp-row">
+            <div>VLMClassifier</div>
+            <div>Architecture</div>
+            <div class="cmp-mid">Improves some representations</div>
+          </div>
+          <div class="cmp-row">
+            <div>I-MoF</div>
+            <div>Architecture</div>
+            <div class="cmp-mid">Improves some representations</div>
+          </div>
+          <div class="cmp-row cmp-ours">
+            <div><b>Ours</b></div>
+            <div>Training-time</div>
+            <div class="cmp-yes">Directly enforces invariance via perturbation + consistency</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why it works -->
+    <section class="section" id="why">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Intuition</span>
+          <h2>Why it works</h2>
+        </div>
+
+        <div class="why-grid">
+          <p class="why-text">
+            Our method teaches the model that <b>irrelevant modality changes should not alter the answer</b>.
+            Heuristic perturbations expose realistic interference patterns; adversarial perturbations
+            search worst-case sensitive directions; consistency regularization makes clean and
+            perturbed outputs agree. Together, these components reduce spurious cross-modal reliance
+            while preserving task-relevant reasoning.
+          </p>
+
+          <aside class="ib-box">
+            <div class="ib-tag">Information-bottleneck view</div>
+            <p>
+              The consistency objective can be viewed as suppressing excess conditional mutual
+              information between the prediction and the task-irrelevant modality, while supervised
+              learning preserves task-relevant label information.
+            </p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- Citation -->
+    <section class="section section-alt" id="cite">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Citation</span>
+          <h2>If you find this useful</h2>
+        </div>
+
+        <div class="bib-card">
+          <button class="bib-copy" id="bib-copy" type="button" aria-label="Copy BibTeX">Copy</button>
+<pre id="bib-text">@inproceedings{cai2026modalityinterference,
+  title     = {Diagnosing and Mitigating Modality Interference in Multimodal Large Language Models},
+  author    = {Cai, Rui and Li, Bangzheng and Wen, Xiaofei and Chen, Muhao and Zhao, Zhe},
+  booktitle = {Submitted to NeurIPS},
+  year      = {2026},
+  note      = {arXiv:2505.19616}
+}</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="foot-col">
+        <div class="foot-brand">
+          <span class="brand-dot"></span> Modality Interference
+        </div>
+        <p class="foot-tag">Diagnose. Perturb. Regularize.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Project</h5>
+        <a href="https://arxiv.org/abs/2505.19616">Paper</a>
+        <a href="#">Code</a>
+        <a href="#">GitHub</a>
+        <a href="#">License</a>
+      </div>
+      <div class="foot-col">
+        <h5>Contact</h5>
+        <a href="mailto:rcai@ucdavis.edu">rcai@ucdavis.edu</a>
+        <span class="muted">University of California, Davis</span>
+      </div>
+    </div>
+    <div class="container foot-bottom">
+      <span>&copy; 2026 Rui Cai et al. — UC Davis</span>
+    </div>
+  </footer>
+
+  <script src="static/js/main.js"></script>
+</body>
+</html>
