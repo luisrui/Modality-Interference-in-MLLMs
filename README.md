@@ -1,13 +1,15 @@
 # Diagnosing and Mitigating Modality Interference in Multimodal Large Language Models
 
+[![NeurIPS 2026](https://img.shields.io/badge/NeurIPS-2026-4b44ce.svg)](https://neurips.cc/)
 [![arXiv](https://img.shields.io/badge/arXiv-2505.19616-b31b1b.svg)](https://arxiv.org/abs/2505.19616)
+[![Project Page](https://img.shields.io/badge/Project-Page-2ea44f.svg)](https://luisrui.github.io/Modality-Interference-in-MLLMs/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-This repository contains the official implementation of our paper:
+This repository contains the official implementation of our **NeurIPS 2026** paper:
 
 > **Diagnosing and Mitigating Modality Interference in Multimodal Large Language Models**  
 > Rui Cai, Bangzheng Li, Xiaofei Wen, Muhao Chen, Zhe Zhao  
-> [arXiv:2505.19616](https://arxiv.org/abs/2505.19616)
+> **NeurIPS 2026** · [arXiv:2505.19616](https://arxiv.org/abs/2505.19616) · [Project Page](https://luisrui.github.io/Modality-Interference-in-MLLMs/)
 
 ---
 
@@ -15,7 +17,7 @@ This repository contains the official implementation of our paper:
 
 Multimodal Large Language Models (MLLMs) have demonstrated impressive capabilities across tasks, yet they often exhibit difficulty in distinguishing task-relevant from irrelevant signals—particularly in tasks like Visual Question Answering (VQA)—which can lead to susceptibility to misleading or spurious inputs. We refer to this broader limitation as the Cross-Modality Competency Problem—the model’s inability to fairly evaluate all modalities. This vulnerability becomes more evident in modality-specific tasks—such as image classification or pure text question answering—where models are expected to rely solely on one modality. In such tasks, spurious information from irrelevant modalities often lead to significant performance degradation. We refer to this failure as Modality Interference, which serves as a concrete and measurable instance of the cross-modality competency problem, and we further design a perturbation-based causal diagnostic experiment to verify and quantify this problem. To mitigate modality interference, we propose a novel framework to finetune MLLMs, including perturbation-based data augmentations with both heuristic perturbations and adversarial perturbations via Projected Gradient Descent (PGD), and a consistency regularization strategy applying on model outputs with original and perturbed inputs. Experiments on multiple benchmark datasets (image-heavy, text-heavy and VQA tasks) and multiple model families with different scales demonstrate significant improvements in robustness and cross-modality competency, indicating our method’s effectiveness in boosting unimodal reasoning ability while enhancing performance on multimodal tasks.
 
-For more details, please refer to our [paper](https://arxiv.org/abs/2505.19616).
+For more details, please refer to our [paper](https://arxiv.org/abs/2505.19616) and [project page](https://luisrui.github.io/Modality-Interference-in-MLLMs/).
 
 ---
 
@@ -94,10 +96,10 @@ We also provide pretrained checkpoints and a unified evaluation interface at
 If you find this repository helpful in your research, please cite our paper:\
 
 ```bibtex
-@article{cai2025diagnosing,
+@inproceedings{cai2026modalityinterference,
   title={Diagnosing and Mitigating Modality Interference in Multimodal Large Language Models},
   author={Cai, Rui and Li, Bangzheng and Wen, Xiaofei and Chen, Muhao and Zhao, Zhe},
-  journal={arXiv preprint arXiv:2505.19616},
-  year={2025}
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
+  year={2026}
 }
 ```
